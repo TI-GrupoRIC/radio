@@ -27,7 +27,8 @@
       },
       "permissions": [
         "INTERNET",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "WAKE_LOCK"
       ],
       "package": "com.diego.tabisz.radio"
     },

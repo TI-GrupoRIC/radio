@@ -13,12 +13,12 @@ export default function App() {
   async function configureAudio() {
     try {
       await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
         staysActiveInBackground: true,
         playsInSilentModeIOS: true,
+        interruptionModeIOS: InterruptionModeIOS.DuckOthers, // Change as you like
+        interruptionModeAndroid: InterruptionModeAndroid.DuckOthers, // Change as you like
         shouldDuckAndroid: true,
-        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
-        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_MIX_WITH_OTHERS, // Corrigido aqui
+        playThroughEarpieceAndroid: true,
       });
       console.log('Configuração de áudio aplicada com sucesso!');
     } catch (error) {
@@ -30,7 +30,7 @@ export default function App() {
   async function playAudio() {
     setMessage('');
     setLoading(true);
-  
+
     try {
       await configureAudio();
 
@@ -47,6 +47,11 @@ export default function App() {
             setMessage('Erro ao carregar áudio.');
           } else {
             console.log('Áudio carregado com sucesso!');
+          }
+
+          // Verificar se o áudio ainda está tocando no background
+          if (status.isPlaying) {
+            setIsPlaying(true);
           }
         });
 
