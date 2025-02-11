@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "radio",
-    "slug": "radio",
+    "slug": "radios",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -38,6 +38,7 @@
       "eas": {
         "projectId": "8334531d-58ff-4852-9a2f-eb3bda97aff9"
       }
-    }
+    },
+    "owner": "diego.tabisz"
   }
 }
