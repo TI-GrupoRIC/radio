@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "radio",
-    "slug": "radios",
+    "slug": "radio",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -27,22 +27,16 @@
       },
       "permissions": [
         "INTERNET",
-        "ACCESS_FINE_LOCATION",
-        "WAKE_LOCK"
-      ],
-      "package": "com.diego.tabisz.radio"
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "8334531d-58ff-4852-9a2f-eb3bda97aff9"
+        "projectId": "365736e4-a0f0-4777-8df1-b8b45ddecbe0"
       }
-    },
-    "owner": "diego.tabisz",
-    "experiments": {
-      "reactCompiler": true
     }
   }
 }

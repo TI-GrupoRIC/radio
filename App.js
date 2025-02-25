@@ -1,67 +1,97 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, ProgressBarAndroid, Platform, ProgressViewIOS } from 'react-native';
+import { View, Button, Text, ActivityIndicator } from 'react-native';
 import { Audio } from 'expo-av';
 
-const RADIO_STREAM = 'https://r15.ciclano.io/proxy/radiofmi/stream';
+const RADIO_URL = 'https://r15.ciclano.io/proxy/radiofmi/stream';
 
 export default function App() {
   const [sound, setSound] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [buffer, setBuffer] = useState(0);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  async function configureAudio() {
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        staysActiveInBackground: true,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS, // Corrigido aqui
+      });
+      console.log('Configuração de áudio aplicada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao configurar o áudio:', error);
+      setMessage('Erro ao configurar o áudio.');
+    }
+  }
+
+  async function playAudio() {
+    setMessage('');
+    setLoading(true);
+  
+    try {
+      await configureAudio();
+
+      if (!sound) {
+        console.log('Carregando nova instância do som...');
+        const { sound: newSound } = await Audio.Sound.createAsync(
+          { uri: RADIO_URL },
+          { shouldPlay: true }
+        );
+
+        newSound.setOnPlaybackStatusUpdate((status) => {
+          if (!status.isLoaded) {
+            console.log('Erro ao carregar áudio:', status.error);
+            setMessage('Erro ao carregar áudio.');
+          } else {
+            console.log('Áudio carregado com sucesso!');
+          }
+        });
+
+        setSound(newSound);
+        setIsPlaying(true);
+        setMessage('Reproduzindo com sucesso!');
+      } else {
+        console.log('Tocando áudio já carregado...');
+        await sound.playAsync();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Erro ao reproduzir áudio:', error);
+      setMessage('Erro ao reproduzir áudio.');
+    }
+
+    setLoading(false);
+  }
+
+  async function pauseAudio() {
+    if (sound) {
+      await sound.pauseAsync();
+      setIsPlaying(false);
+      setMessage('Reprodução pausada.');
+    }
+  }
 
   useEffect(() => {
-    Audio.setAudioModeAsync({
-      staysActiveInBackground: true,
-      playsInSilentModeIOS: true,
-    });
-  }, []);
-
-  async function loadAndPlay() {
-    try {
-      setError(null);
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: RADIO_STREAM },
-        { shouldPlay: true },
-        onPlaybackStatusUpdate
-      );
-      setSound(sound);
-      setIsPlaying(true);
-    } catch (err) {
-      setError(err.message);
-    }
-  }
-
-  function onPlaybackStatusUpdate(status) {
-    if (status.isLoaded) {
-      setBuffer(status.positionMillis / (status.durationMillis || 1));
-    } else if (status.error) {
-      setError(status.error);
-    }
-  }
-
-  async function togglePlayPause() {
-    if (!sound) {
-      await loadAndPlay();
-    } else {
-      if (isPlaying) {
-        await sound.pauseAsync();
-      } else {
-        await sound.playAsync();
+    return () => {
+      if (sound) {
+        console.log('Descarregando áudio...');
+        sound.unloadAsync();
       }
-      setIsPlaying(!isPlaying);
-    }
-  }
+    };
+  }, [sound]);
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Button title={isPlaying ? 'Pause' : 'Play'} onPress={togglePlayPause} />
-      {Platform.OS === 'android' ? (
-        <ProgressBarAndroid styleAttr='Horizontal' progress={buffer} indeterminate={false} />
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+      <Text style={{ fontSize: 20, marginBottom: 20 }}>Rádio Online</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color="blue" />
       ) : (
-        <ProgressViewIOS progress={buffer} />
+        <Button title={isPlaying ? 'Pausar' : 'Tocar'} onPress={isPlaying ? pauseAudio : playAudio} />
       )}
-      {error && <Text style={{ color: 'red' }}>Erro: {error}</Text>}
+      <Text style={{ marginTop: 10, color: 'red' }}>{message}</Text>
     </View>
   );
 }
